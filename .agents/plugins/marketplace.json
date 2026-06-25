@@ -1,0 +1,20 @@
+{
+  "name": "figma-codex-plugins",
+  "interface": {
+    "displayName": "Figma Codex Plugins"
+  },
+  "plugins": [
+    {
+      "name": "figma-in-codex",
+      "source": {
+        "source": "local",
+        "path": "../../figma-in-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Design"
+    }
+  ]
+}

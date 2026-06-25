@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "figma_in_codex": {
+      "command": "bash",
+      "args": ["./scripts/start-mcp.sh"],
+      "cwd": "."
+    }
+  }
+}

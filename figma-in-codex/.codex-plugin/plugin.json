@@ -1,0 +1,31 @@
+{
+  "name": "figma-in-codex",
+  "version": "0.1.0+codex.20260625151339",
+  "description": "Codex Design(Figma in Codex) connects Codex's in-app browser Figma context to the official Figma MCP server.",
+  "author": {
+    "name": "Local Codex Plugin Developer"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Codex Design(Figma in Codex)",
+    "shortDescription": "Let Codex understand and modify the Figma file currently open in the in-app browser.",
+    "longDescription": "Codex Design(Figma in Codex) resolves the current Figma file and live companion-plugin selection, then guides Codex through official Figma MCP read, write, screenshot verification, and local operation logging workflows.",
+    "developerName": "Local Codex Plugin Developer",
+    "category": "Design",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "composerIcon": "./assets/logo.png",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Start figma-in-codex and prepare Figma editing context.",
+      "Open Figma in Codex and set up the current file.",
+      "Use the current Figma selection as the target.",
+      "Inspect the current Figma frame and suggest a safe modification.",
+      "Modify the selected Figma node and verify it with a screenshot."
+    ]
+  }
+}

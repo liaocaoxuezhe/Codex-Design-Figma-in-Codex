@@ -1,0 +1,54 @@
+# macOS / editor metadata
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Dependencies and package-manager caches
+node_modules/
+**/node_modules/
+.npm/
+.pnpm-store/
+
+# Root workspace helper files are local-only; the plugin package has its own
+# package.json and package-lock.json under figma-in-codex/.
+/package.json
+/package-lock.json
+
+# Python local environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local Codex/plugin development state
+.codex/
+.codex-cache/
+
+# Local-only planning and verification notes
+docs/
+
+# Generated logs, coverage, and build outputs
+*.log
+coverage/
+dist/
+build/
+tmp/
+temp/
+
+# Local screenshots / design references
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.mov
+*.mp4
+
+# Keep plugin assets versioned even though screenshots are ignored globally.
+!figma-in-codex/assets/
+!figma-in-codex/assets/**
