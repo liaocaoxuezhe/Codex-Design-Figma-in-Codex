@@ -13,12 +13,25 @@
 - `figma-in-codex/mcp/server.mjs`：给 Codex 使用的本地 MCP 工具。
 - `figma-in-codex/figma-companion-plugin/`：需要在 Figma 桌面端或浏览器中导入的 companion plugin。
 
-## 前置要求
+## 依赖与前置要求
 
-- 已安装 Codex。
-- 已安装 Node.js，并能运行 `npm install`。
-- 已在 Codex 中启用或认证官方 Figma MCP：`https://mcp.figma.com/mcp`。
-- 有目标 Figma 文件的访问权限。
+运行这个插件需要下面这些依赖。`figma-in-codex` 只负责把 Codex 和当前 Figma 上下文连接起来；真正读取、写入、截图和验证 Figma 画布，需要依赖官方 Figma MCP。
+
+| 依赖 | 是否必须 | 用途 |
+| --- | --- | --- |
+| Codex | 必须 | 安装和运行本插件。 |
+| Node.js | 必须 | 运行本地 bridge、MCP server，并安装 npm 依赖。 |
+| 官方 Figma MCP | 必须 | 读取 Figma 设计数据、截图、写入画布和验证修改结果。 |
+| Figma 账号和目标文件权限 | 必须 | 官方 Figma MCP 和 companion plugin 都需要访问目标文件。 |
+| Figma companion plugin | 必须 | 把当前 Figma 文件、页面和选区同步到本地 bridge。 |
+
+官方 Figma MCP 地址：
+
+```text
+https://mcp.figma.com/mcp
+```
+
+如果 Codex 里还没有连接官方 Figma MCP，请先在 Codex 设置中添加并完成 Figma 授权。没有这个依赖时，本插件只能解析当前上下文，不能真正读取或修改 Figma 文件。
 
 ## 安装方式一：命令行安装
 
@@ -34,7 +47,7 @@ codex plugin marketplace add https://github.com/<owner>/<repo>.git --sparse .age
 codex plugin marketplace add .
 ```
 
-然后在 Codex 的插件目录里找到 `Figma Codex Plugins`，安装并启用 `figma-in-codex`。
+然后在 Codex 的插件目录里找到 `Figma Codex Plugins`，安装并启用 `figma-in-codex`。安装后请确认官方 Figma MCP 已连接并处于已认证状态。
 
 安装后进入插件目录安装依赖：
 
@@ -50,7 +63,7 @@ npm install
 ```text
 请从这个仓库安装 figma-in-codex 插件：https://github.com/<owner>/<repo>.git
 需要时使用 sparse 路径 .agents/plugins 和 figma-in-codex。
-安装后启用插件，并确认官方 Figma MCP 已连接。
+安装后启用插件，并确认官方 Figma MCP 已连接，地址是 https://mcp.figma.com/mcp。
 ```
 
 如果你使用的是本地仓库，可以这样说：
@@ -90,6 +103,17 @@ Start figma-in-codex and prepare Figma editing context.
 3. companion plugin 把当前文件、页面、选区同步到 `http://127.0.0.1:38447`。
 4. Codex 使用 `figma-in-codex` 解析当前目标。
 5. Codex 通过官方 Figma MCP 读取、修改并验证设计。
+
+## 官方 Figma MCP 配置
+
+本插件依赖官方 Figma MCP。推荐按下面顺序检查：
+
+1. 打开 Codex 设置。
+2. 找到 MCP servers 或 Connectors。
+3. 添加官方 Figma MCP：`https://mcp.figma.com/mcp`。
+4. 按提示登录 Figma 并授权。
+5. 确认授权账号能访问你要操作的 Figma 文件。
+6. 再运行 `figma-in-codex` 插件工作流。
 
 ## 本地验证
 

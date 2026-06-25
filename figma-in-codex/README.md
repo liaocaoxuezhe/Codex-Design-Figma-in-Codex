@@ -2,6 +2,26 @@
 
 Codex Design(Figma in Codex) connects Codex's local workflow to the official Figma MCP server by resolving the current Figma file, URL node, and live companion-plugin selection.
 
+## Dependencies
+
+This plugin depends on both local runtime pieces and the official Figma MCP.
+
+| Dependency | Required | Purpose |
+| --- | --- | --- |
+| Codex | Yes | Installs and runs this plugin. |
+| Node.js | Yes | Runs the local bridge, MCP server, and npm dependencies. |
+| Official Figma MCP | Yes | Reads design data, captures screenshots, writes canvas changes, and verifies results. |
+| Figma account with file access | Yes | Authorizes official Figma MCP and opens the target file. |
+| Figma companion plugin | Yes | Syncs the current Figma file, page, and selection to the local bridge. |
+
+Official Figma MCP URL:
+
+```text
+https://mcp.figma.com/mcp
+```
+
+Without the official Figma MCP, this plugin can resolve local context but cannot read, write, screenshot, or verify Figma design content.
+
 ## Components
 
 - `mcp/server.mjs`: local MCP tools for context, target resolution, workflow preparation, and operation logs.
