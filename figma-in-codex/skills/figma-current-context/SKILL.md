@@ -16,10 +16,10 @@ Use the local `figma_in_codex` MCP tools before using official Figma MCP tools.
    - Use `https://mcp.figma.com/mcp` as the server URL.
    - Complete the Figma authorization prompt with an account that can access the target file.
    - Retry the request after Codex shows the Figma MCP is connected.
-6. If official Figma MCP is available, call it in this order:
-   - `get_metadata`
-   - `get_design_context`
-   - `get_screenshot`
+6. If official Figma MCP is available, prefer structured reads:
+   - Use `mcp__plugin_figma_figma__get_metadata` / `get_metadata` for the whole file or page: high-level node tree, page structure, and node list. If `nodeId` is unknown, omit it to list top-level pages before drilling in.
+   - Use `mcp__plugin_figma_figma__get_design_context` / `get_design_context` for a specific `nodeId`: structured node details, reference code, and design context.
+   - Use `mcp__plugin_figma_figma__get_screenshot` / `get_screenshot` only when the user explicitly asks for a screenshot or structured checks cannot answer a specific visual question. Screenshots are token-expensive.
 7. Report the resolved `fileKey`, `nodeId`, node name/type when available, and any bridge warnings.
 
 Do not write to Figma from this skill.

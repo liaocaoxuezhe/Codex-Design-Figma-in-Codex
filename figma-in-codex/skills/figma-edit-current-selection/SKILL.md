@@ -15,7 +15,11 @@ Always resolve the current target through `figma_in_codex` first. Use official F
    - Use `https://mcp.figma.com/mcp` as the server URL.
    - Complete the Figma authorization prompt with an account that can access the target file.
    - Retry the request after Codex shows the Figma MCP is connected.
-5. Call official Figma MCP `get_metadata` and `get_screenshot` for the resolved `fileKey` and `nodeId`.
+5. Inspect the resolved target with official Figma MCP structured tools before writing:
+   - `mcp__plugin_figma_figma__get_metadata` / `get_metadata` for page/file node tree, structure, and node list.
+   - `mcp__plugin_figma_figma__get_design_context` / `get_design_context` for the selected `nodeId` details and design context.
+   - For verification, prefer `use_figma` code that reads positions, sizes, text bounds, constraints, and overlap relationships.
+   - `mcp__plugin_figma_figma__get_screenshot` / `get_screenshot` only when the user explicitly asks for a screenshot or structured checks cannot answer a specific visual question. Screenshots are token-expensive.
 6. Write a short modification plan that names the target and preserves auto layout, component instances, variables, constraints, and existing content not mentioned by the user.
 7. Call official Figma MCP `use_figma` with a prompt containing:
    - target `fileKey`
@@ -23,7 +27,7 @@ Always resolve the current target through `figma_in_codex` first. Use official F
    - node name and type when available
    - exact requested change
    - preservation constraints
-   - screenshot-based acceptance criteria
-8. Call official Figma MCP `get_screenshot` again.
+   - acceptance criteria based on structured context and geometry checks
+8. After writing, use structured context or `use_figma` geometry checks again. Call `get_screenshot` only when structured checks cannot answer a specific visual question or the user explicitly requested it.
 9. Call `record_figma_operation` with the request, target, and outcome.
-10. Summarize what changed and whether screenshot verification succeeded.
+10. Summarize what changed and name which verification method was used.

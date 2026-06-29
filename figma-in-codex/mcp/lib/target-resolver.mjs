@@ -7,15 +7,15 @@ function isUsableSelection(stateInfo) {
 function workflowSteps(canWrite) {
   const readSteps = [
     "Call official Figma MCP get_metadata with fileKey and nodeId.",
-    "Call official Figma MCP get_design_context when layout/code context is needed.",
-    "Call official Figma MCP get_screenshot before making or describing visual changes.",
+    "Call official Figma MCP get_design_context for node-level structured details.",
+    "Use structured metadata, design context, or use_figma geometry checks for verification; call get_screenshot only after structured checks cannot answer a specific visual question or the user explicitly asks for a screenshot.",
   ];
   if (!canWrite) return readSteps;
   return [
     ...readSteps,
     "Create a short modification plan before writing.",
     "Use official Figma MCP use_figma for the write-back.",
-    "Call get_screenshot again and record_figma_operation after writing.",
+    "Record the operation after writing with structured evidence; include screenshot evidence only after structured checks cannot answer a specific visual question.",
   ];
 }
 

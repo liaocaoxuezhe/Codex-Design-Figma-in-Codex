@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Codex Design(Figma in Codex)",
     "shortDescription": "Let Codex understand and modify the Figma file currently open in the in-app browser.",
-    "longDescription": "Codex Design(Figma in Codex) resolves the current Figma file and live companion-plugin selection, then guides Codex through official Figma MCP read, write, screenshot verification, and local operation logging workflows.",
+    "longDescription": "Codex Design(Figma in Codex) resolves the current Figma file and live companion-plugin selection, then guides Codex through official Figma MCP structured reads, write workflows, structured verification, and local operation logging.",
     "developerName": "Local Codex Plugin Developer",
     "category": "Design",
     "capabilities": [
@@ -25,7 +25,7 @@
       "Open Figma in Codex and set up the current file.",
       "Use the current Figma selection as the target.",
       "Inspect the current Figma frame and suggest a safe modification.",
-      "Modify the selected Figma node and verify it with a screenshot."
+      "Modify the selected Figma node and verify it with structured context."
     ]
   }
 }

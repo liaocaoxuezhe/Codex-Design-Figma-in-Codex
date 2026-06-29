@@ -30,6 +30,27 @@ test("MCP server lists all Figma bridge tools", async () => {
   ]);
 });
 
+test("record operation schema does not nudge screenshot evidence", async () => {
+  const client = new Client({ name: "figma-bridge-test-client", version: "0.1" });
+  const transport = new StdioClientTransport({
+    command: "node",
+    args: ["figma-in-codex/mcp/server.mjs"],
+    cwd: new URL("..", import.meta.url),
+    stderr: "pipe",
+  });
+
+  await client.connect(transport);
+  const { tools } = await client.listTools();
+  await client.close();
+
+  const recordTool = tools.find((tool) => tool.name === "record_figma_operation");
+  const properties = recordTool.inputSchema.properties;
+  assert.equal("beforeScreenshot" in properties, false);
+  assert.equal("afterScreenshot" in properties, false);
+  assert.equal("beforeEvidence" in properties, true);
+  assert.equal("afterEvidence" in properties, true);
+});
+
 test("MCP server does not respond to JSON-RPC notifications", async () => {
   const child = spawn("node", ["figma-in-codex/mcp/server.mjs"], {
     cwd: new URL("..", import.meta.url),

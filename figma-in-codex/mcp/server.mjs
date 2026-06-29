@@ -74,13 +74,13 @@ const tools = [
   {
     name: "record_figma_operation",
     title: "Record Figma Operation",
-    description: "Record a local audit entry for a Figma MCP operation.",
+    description: "Record a local audit entry for a Figma MCP operation. Prefer structured verification evidence; visual evidence is only for explicit or unresolved visual checks.",
     inputSchema: z.object({
       target: z.record(z.unknown()).optional(),
       request: z.string().optional(),
       result: z.string().optional(),
-      beforeScreenshot: z.string().optional(),
-      afterScreenshot: z.string().optional(),
+      beforeEvidence: z.string().optional(),
+      afterEvidence: z.string().optional(),
     }).passthrough(),
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
   },
@@ -161,14 +161,20 @@ async function callTool(name, args = {}) {
     });
     const intent = args.intent ?? "read";
     const steps = intent === "write" || intent === "create"
-      ? ["get_screenshot", "use_figma", "get_screenshot", "record_figma_operation"]
-      : ["get_metadata", "get_design_context", "get_screenshot"];
+      ? ["get_metadata", "get_design_context", "use_figma", "record_figma_operation"]
+      : ["get_metadata", "get_design_context"];
+    const optionalSteps = ["get_screenshot"];
     return text({
       intent,
       target: resolved.target,
       canWrite: resolved.canWrite,
       officialFigmaMcp: createOfficialFigmaMcpSetupGuide({ intent }),
       officialFigmaMcpCalls: steps.map((toolName) => ({ toolName, args: resolved.target ? { fileKey: resolved.target.fileKey, nodeId: resolved.target.nodeId } : {} })),
+      optionalOfficialFigmaMcpCalls: optionalSteps.map((toolName) => ({
+        toolName,
+        args: resolved.target ? { fileKey: resolved.target.fileKey, nodeId: resolved.target.nodeId } : {},
+        useWhen: "Only after structured checks cannot answer a specific visual question, or when the user explicitly asks for a screenshot.",
+      })),
       warnings: resolved.warnings,
     });
   }

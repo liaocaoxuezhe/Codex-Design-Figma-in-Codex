@@ -1,6 +1,6 @@
 # Figma Codex Plugins
 
-这个仓库发布 `figma-in-codex` Codex 插件。它把 Codex 本地工作流、Figma companion plugin、以及官方 Figma MCP 连接起来，让 Codex 能识别当前打开的 Figma 文件、页面和选区，并围绕当前设计上下文执行读取、编辑、截图验证等工作流。
+这个仓库发布 `figma-in-codex` Codex 插件。它把 Codex 本地工作流、Figma companion plugin、以及官方 Figma MCP 连接起来，让 Codex 能识别当前打开的 Figma 文件、页面和选区，并围绕当前设计上下文执行结构化读取、编辑和结构化校验等工作流。
 
 仓库里真正用于安装的插件目录是 `figma-in-codex/`。根目录的 `.agents/plugins/marketplace.json` 是 Codex marketplace 入口，用来让 Codex 从这个仓库发现并安装插件。
 
@@ -15,13 +15,13 @@
 
 ## 依赖与前置要求
 
-运行这个插件需要下面这些依赖。`figma-in-codex` 只负责把 Codex 和当前 Figma 上下文连接起来；真正读取、写入、截图和验证 Figma 画布，需要依赖官方 Figma MCP。
+运行这个插件需要下面这些依赖。`figma-in-codex` 只负责把 Codex 和当前 Figma 上下文连接起来；真正读取、写入和校验 Figma 画布，需要依赖官方 Figma MCP。截图是少数视觉问题的后备手段，不是默认校验路径。
 
 | 依赖 | 是否必须 | 用途 |
 | --- | --- | --- |
 | Codex | 必须 | 安装和运行本插件。 |
 | Node.js | 必须 | 运行本地 bridge、MCP server，并安装 npm 依赖。 |
-| 官方 Figma MCP | 必须 | 读取 Figma 设计数据、截图、写入画布和验证修改结果。 |
+| 官方 Figma MCP | 必须 | 读取 Figma 设计数据、写入画布，并用结构化数据校验修改结果。 |
 | Figma 账号和目标文件权限 | 必须 | 官方 Figma MCP 和 companion plugin 都需要访问目标文件。 |
 | Figma companion plugin | 必须 | 把当前 Figma 文件、页面和选区同步到本地 bridge。 |
 
@@ -134,6 +134,6 @@ test -f figma-in-codex/figma-companion-plugin/manifest.json
 
 ## 注意事项
 
-- 这个插件负责解析和同步当前 Figma 上下文；真正读取、写入和截图验证 Figma 文件仍依赖官方 Figma MCP。
+- 这个插件负责解析和同步当前 Figma 上下文；真正读取、写入和结构化校验 Figma 文件仍依赖官方 Figma MCP。截图只在结构化检查无法回答具体视觉问题或用户明确要求时使用。
 - `docs/`、`node_modules/`、虚拟环境、本地截图和系统缓存不进入 Git 仓库。
 - 如果修改或新增中文文档，请保持文件为 UTF-8 编码。

@@ -10,7 +10,7 @@ This plugin depends on both local runtime pieces and the official Figma MCP.
 | --- | --- | --- |
 | Codex | Yes | Installs and runs this plugin. |
 | Node.js | Yes | Runs the local bridge, MCP server, and npm dependencies. |
-| Official Figma MCP | Yes | Reads design data, captures screenshots, writes canvas changes, and verifies results. |
+| Official Figma MCP | Yes | Reads design data, writes canvas changes, and verifies results with structured data first. |
 | Figma account with file access | Yes | Authorizes official Figma MCP and opens the target file. |
 | Figma companion plugin | Yes | Syncs the current Figma file, page, and selection to the local bridge. |
 
@@ -20,7 +20,7 @@ Official Figma MCP URL:
 https://mcp.figma.com/mcp
 ```
 
-Without the official Figma MCP, this plugin can resolve local context but cannot read, write, screenshot, or verify Figma design content.
+Without the official Figma MCP, this plugin can resolve local context but cannot read, write, or verify Figma design content.
 
 ## Components
 
@@ -49,7 +49,7 @@ The `figma-onboarding` skill calls `get_figma_onboarding_status` to decide wheth
 
 ## Official Figma MCP Requirement
 
-This plugin resolves the current Figma file and selection, but official Figma MCP is required for reading design data, screenshots, canvas writes, and post-write verification.
+This plugin resolves the current Figma file and selection, but official Figma MCP is required for reading design data, canvas writes, and post-write verification. Use structured metadata, design context, or geometry checks first; screenshots are only a fallback for explicit or unresolved visual questions.
 
 If official Figma MCP is missing or not authenticated:
 
