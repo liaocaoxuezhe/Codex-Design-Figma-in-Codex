@@ -6,5 +6,17 @@
   "ui": "ui.html",
   "capabilities": [],
   "enableProposedApi": false,
-  "editorType": ["figma", "figjam", "slides"]
+  "editorType": [
+    "figma",
+    "figjam",
+    "slides"
+  ],
+  "documentAccess": "dynamic-page",
+  "enablePrivatePluginApi": true,
+  "networkAccess": {
+    "allowedDomains": [
+      "http://127.0.0.1:38447"
+    ],
+    "reasoning": "Sync the current Figma file and selection with the local Codex bridge."
+  }
 }

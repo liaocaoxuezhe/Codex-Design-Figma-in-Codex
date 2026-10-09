@@ -5,10 +5,8 @@ description: Use when Figma bridge state is missing, stale, selection is empty, 
 
 # Figma Sync From Browser
 
-Use this recovery workflow when context is unavailable.
-
-1. Call `get_figma_bridge_status`.
-2. If the HTTP bridge is not running, start `${PLUGIN_ROOT}/scripts/start-bridge.sh`.
-3. Ask the user to run the Figma companion plugin in the current Figma file.
-4. If companion plugin access is not possible, ask for a Figma node link and pass it as `explicitUrl` to `resolve_current_figma_target`.
+1. If the request includes a Figma URL, follow `figma-onboarding` and complete its visible `browserHandoff` before syncing or reading design data. Otherwise reuse the target Figma tab. Pass its actual URL as both `explicitUrl` and `currentBrowserUrl` to `get_figma_onboarding_status`.
+2. If the bridge is needed but not running, start `${PLUGIN_ROOT}/scripts/start-bridge.sh`.
+3. Run the updated local/private companion plugin in that same Figma file. It should show a successful sync and a file key. Keep it open for live selection updates.
+4. Recheck `get_figma_onboarding_status` with the current tab URL as both `explicitUrl` and `currentBrowserUrl`. If the companion cannot provide a file key, use an explicit Figma node link; do not combine an unverified selection with a browser URL.
 5. Never refresh or close the user's Figma tab just to read state.

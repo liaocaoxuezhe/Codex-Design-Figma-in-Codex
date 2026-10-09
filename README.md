@@ -23,7 +23,7 @@
 | Node.js | 必须 | 运行本地 bridge、MCP server，并安装 npm 依赖。 |
 | 官方 Figma MCP | 必须 | 读取 Figma 设计数据、写入画布，并用结构化数据校验修改结果。 |
 | Figma 账号和目标文件权限 | 必须 | 官方 Figma MCP 和 companion plugin 都需要访问目标文件。 |
-| Figma companion plugin | 必须 | 把当前 Figma 文件、页面和选区同步到本地 bridge。 |
+| Figma companion plugin | 仅无节点链接、需读取实时选区时 | 把当前 Figma 文件、页面和选区同步到本地 bridge。 |
 
 官方 Figma MCP 地址：
 
@@ -74,7 +74,7 @@ npm install
 
 ## Figma companion plugin
 
-Codex 插件安装后，还需要把 Figma 侧 companion plugin 导入 Figma：
+如果需要直接读取 Figma 中的实时选区，安装 Codex 插件后再把 companion plugin 导入 Figma：
 
 1. 打开 Figma。
 2. 进入 Plugins 的开发插件导入入口。
@@ -96,13 +96,17 @@ Start figma-in-codex and prepare Figma editing context.
 启动 figma-in-codex，使用当前 Figma 文件和选区作为目标。
 ```
 
+也可以直接指定链接，让 Codex 在内置浏览器中打开对应文件和节点：
+
+```text
+使用 figma-in-codex 打开这个 Figma 链接，并以链接中的节点为目标：https://www.figma.com/design/CTiBHuD782jXBuAQtI5WMk/%E7%94%9F%E5%9B%BE?node-id=41-2
+```
+
 典型流程：
 
-1. Codex 启动本地 bridge 和 MCP server。
-2. 你在 Figma 中打开目标文件并运行 companion plugin。
-3. companion plugin 把当前文件、页面、选区同步到 `http://127.0.0.1:38447`。
-4. Codex 使用 `figma-in-codex` 解析当前目标。
-5. Codex 通过官方 Figma MCP 读取、修改并验证设计。
+1. 提供 Figma 节点链接时，Codex 在内置浏览器打开该链接并解析目标；已有相同文件和节点时直接复用。
+2. 没有节点链接、需要实时选区时，运行 companion plugin，让它通过本地 bridge 同步当前选区。
+3. Codex 通过官方 Figma MCP 读取、修改并验证设计。
 
 ## 官方 Figma MCP 配置
 
@@ -137,3 +141,11 @@ test -f figma-in-codex/figma-companion-plugin/manifest.json
 - 这个插件负责解析和同步当前 Figma 上下文；真正读取、写入和结构化校验 Figma 文件仍依赖官方 Figma MCP。截图只在结构化检查无法回答具体视觉问题或用户明确要求时使用。
 - `docs/`、`node_modules/`、虚拟环境、本地截图和系统缓存不进入 Git 仓库。
 - 如果修改或新增中文文档，请保持文件为 UTF-8 编码。
+
+## 更快的当前文件工作流
+
+用户提供链接时，Codex 优先在内置浏览器打开指定文件和节点；同一目标已打开则直接复用。未提供链接时，优先复用已打开的 Figma 标签页，或打开 companion 最近同步的文件链接。更新后的本地开发 companion 同步 fileKey、页面和选区，并每 10 秒保活；若 Figma 没有提供 fileKey，请改用明确的节点链接，避免误用另一个文件的选区。
+
+本地 MCP 的引导结果会提供 `browserHandoff` 链接；Codex 应在设计任务开始时用内置浏览器完成打开或聚焦、设为可见并保留标签页，再进行官方 Figma MCP 读写。本地 MCP 服务只提供交接信息，实际打开浏览器由 Codex 的浏览器能力执行。
+
+已知节点时，优先用官方 Figma MCP 定向读取；需要页面结构时再读 metadata。画布编辑仍由官方 Figma MCP 的 use_figma 完成，本仓库没有接入独立的 figma_editor 多工具框架。

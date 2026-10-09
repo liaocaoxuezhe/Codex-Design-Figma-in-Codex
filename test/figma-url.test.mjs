@@ -15,6 +15,15 @@ test("parseFigmaUrl parses design URLs with Chinese file names and node IDs", ()
   assert.equal(result.fileName, "生图");
 });
 
+test("parseFigmaUrl decodes the double-encoded Chinese name from Figma's browser URL", () => {
+  const result = parseFigmaUrl(
+    "https://www.figma.com/design/CTiBHuD782jXBuAQtI5WMk/%25E7%2594%259F%25E5%259B%25BE?node-id=41-2",
+  );
+
+  assert.equal(result.fileName, "生图");
+  assert.equal(result.nodeId, "41:2");
+});
+
 test("parseFigmaUrl uses the branch key as file key for branch URLs", () => {
   const result = parseFigmaUrl(
     "https://www.figma.com/design/originalKey/branch/branchKey123/My%20File?node-id=4-5",
