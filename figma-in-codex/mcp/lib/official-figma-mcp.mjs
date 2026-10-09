@@ -39,11 +39,7 @@ export function createOfficialFigmaMcpSetupGuide({ intent = "read" } = {}) {
       get_metadata: "获取整个页面/文件的高层节点树、页面结构、节点列表；当还不知道具体 nodeId 时优先使用。",
       get_design_context: "获取某个 nodeId 的结构化详情、参考代码、设计上下文；这是读取单个节点的主要工具。",
       get_screenshot: "获取截图；消耗 token 较多。先用结构化信息和 use_figma 几何检查，只有结构化检查无法回答具体视觉问题或用户明确要求截图时才使用。",
-    },
-    codexToolNames: {
-      get_metadata: "mcp__plugin_figma_figma__get_metadata",
-      get_design_context: "mcp__plugin_figma_figma__get_design_context",
-      get_screenshot: "mcp__plugin_figma_figma__get_screenshot",
+      use_figma: "在确认目标文件和节点后修改画布，并返回可用于校验的结果。",
     },
     setupSteps: [
       "Open Codex Settings.",

@@ -12,7 +12,7 @@ This plugin depends on both local runtime pieces and the official Figma MCP.
 | Node.js | Yes | Runs the local bridge, MCP server, and npm dependencies. |
 | Official Figma MCP | Yes | Reads design data, writes canvas changes, and verifies results with structured data first. |
 | Figma account with file access | Yes | Authorizes official Figma MCP and opens the target file. |
-| Figma companion plugin | Yes | Syncs the current Figma file, page, and selection to the local bridge. |
+| Figma companion plugin | Only for live selection without a node link | Syncs the current Figma file, page, and selection to the local bridge. |
 
 Official Figma MCP URL:
 
@@ -45,7 +45,9 @@ npm test
 
 ## Onboarding Flow
 
-The `figma-onboarding` skill calls `get_figma_onboarding_status` to decide whether Codex should start the local bridge, open the in-app browser to `https://www.figma.com/files/`, ask the user to run the companion plugin, or continue with the resolved Figma target.
+When the request includes a Figma link, `figma-onboarding` opens that file and node in the Codex in-app Browser. It reuses a tab already showing the target without refreshing it. If no link is supplied, it uses the current Figma tab or the last synced file, then falls back to `https://www.figma.com/files/`. The companion and local bridge are needed only when resolving a live selection without a node link.
+
+The onboarding MCP result includes a structured `browserHandoff` with the exact URL. Codex must complete this visible handoff at the start of a linked design task, before official Figma MCP reads or writes, make the in-app Browser visible, and keep its tab available after the turn. The local MCP server itself only returns the handoff; browser control is performed by the Codex in-app Browser skill.
 
 ## Official Figma MCP Requirement
 
@@ -58,3 +60,9 @@ If official Figma MCP is missing or not authenticated:
 3. Add the official Figma remote MCP server URL: `https://mcp.figma.com/mcp`.
 4. Complete the Figma authorization prompt with an account that can access the target file.
 5. Retry the Figma request after Codex shows the Figma MCP is connected.
+
+## Faster current-file workflow
+
+For a supplied link, Codex navigates to that exact Figma file and node before reading or editing. Otherwise, Codex reuses an existing Figma tab and passes its actual URL to the local context tool. If no tab is open, it opens the last companion-synced file URL when available. The updated local/private companion syncs the file key, page, and selection every 10 seconds. When Figma does not expose a file key, use an explicit node link; an unverified selection is never paired with a browser file.
+
+For a known node, read its design context first and fetch file/page metadata only when needed. Canvas edits still use the official Figma MCP use_figma tool, not the separate figma_editor tool framework. Reimport the companion manifest after updating this plugin.

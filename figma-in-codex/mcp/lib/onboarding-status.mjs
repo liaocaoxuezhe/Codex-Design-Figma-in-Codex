@@ -1,15 +1,29 @@
+import { parseFigmaUrl } from "./figma-url.mjs";
 import { resolveCurrentFigmaTarget } from "./target-resolver.mjs";
 
 export const FIGMA_FILES_URL = "https://www.figma.com/files/";
 
-function hasFreshSelection(bridgeState) {
+function hasFreshMatchingFile(bridgeState, fileKey) {
   return bridgeState?.available === true
     && bridgeState?.fresh === true
-    && Array.isArray(bridgeState.state?.selection)
-    && bridgeState.state.selection.length > 0;
+    && bridgeState.state?.file?.key === fileKey
+    && Array.isArray(bridgeState.state?.selection);
+}
+
+function isSameBrowserTarget(targetUrl, currentBrowserUrl) {
+  if (!currentBrowserUrl) return false;
+  const target = parseFigmaUrl(targetUrl);
+  const current = parseFigmaUrl(currentBrowserUrl);
+  if (!target.ok || !current.ok) return false;
+  return target.kind === current.kind
+    && target.fileKey === current.fileKey
+    && (!target.nodeId || target.nodeId === current.nodeId);
 }
 
 function messageFor(status) {
+  if (status.browser.shouldOpen) {
+    return `Open ${status.browser.openUrl} in the Codex in-app Browser, then continue with the resolved Figma target.`;
+  }
   if (status.ready) {
     return "Figma context is ready. Codex can continue with read or write workflows for the resolved target.";
   }
@@ -27,6 +41,7 @@ export function getFigmaOnboardingStatus({
   bridgeState,
   bridgeHealth,
   explicitUrl,
+  currentBrowserUrl,
   explicitNodeId,
   allowMultiSelection = false,
 } = {}) {
@@ -40,20 +55,31 @@ export function getFigmaOnboardingStatus({
   const hasFileContext = Boolean(resolved.target?.fileKey);
   const hasNodeTarget = Boolean(resolved.target?.nodeId);
   const bridgeRunning = bridgeHealth?.ok === true;
-  const needsBridgeStart = !bridgeRunning;
+  const needsBridgeStart = !bridgeRunning && !hasNodeTarget;
   const needsBrowserOpen = !hasFileContext;
   const needsFigmaFile = !hasFileContext;
-  const needsCompanionPlugin = hasFileContext && !hasFreshSelection(bridgeState);
+  const needsCompanionPlugin = hasFileContext && !hasNodeTarget && !hasFreshMatchingFile(bridgeState, resolved.target.fileKey);
   const needsSelection = hasFileContext && !hasNodeTarget;
   const ready = Boolean(hasFileContext && hasNodeTarget && resolved.canWrite);
+  const openUrl = resolved.target?.url ?? FIGMA_FILES_URL;
+  const validExplicitUrl = explicitUrl && parseFigmaUrl(explicitUrl).ok;
+  const shouldOpen = validExplicitUrl
+    ? Boolean(resolved.target?.url && !isSameBrowserTarget(openUrl, currentBrowserUrl))
+    : needsBrowserOpen;
 
   const status = {
     ready,
     canWrite: resolved.canWrite,
     target: resolved.target,
     browser: {
-      openUrl: needsBrowserOpen ? FIGMA_FILES_URL : null,
-      shouldOpen: needsBrowserOpen,
+      openUrl,
+      shouldOpen,
+    },
+    browserHandoff: {
+      required: true,
+      url: openUrl,
+      preferredMode: "codex-internal-browser",
+      action: shouldOpen ? "open-or-navigate" : "focus-existing",
     },
     bridge: {
       running: bridgeRunning,

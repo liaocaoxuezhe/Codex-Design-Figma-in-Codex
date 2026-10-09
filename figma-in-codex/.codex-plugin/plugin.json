@@ -1,6 +1,6 @@
 {
   "name": "figma-in-codex",
-  "version": "0.1.0+codex.20260625151339",
+  "version": "0.1.6+codex.20261009",
   "description": "Codex Design(Figma in Codex) connects Codex's in-app browser Figma context to the official Figma MCP server.",
   "author": {
     "name": "Local Codex Plugin Developer"
@@ -23,6 +23,7 @@
     "defaultPrompt": [
       "Start figma-in-codex and prepare Figma editing context.",
       "Open Figma in Codex and set up the current file.",
+      "Open the Figma link I provide in Codex's browser and use that file and node.",
       "Use the current Figma selection as the target.",
       "Inspect the current Figma frame and suggest a safe modification.",
       "Modify the selected Figma node and verify it with structured context."

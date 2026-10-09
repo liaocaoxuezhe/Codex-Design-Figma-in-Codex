@@ -5,11 +5,17 @@ export function normalizeFigmaNodeId(nodeId) {
 
 function decodePathPart(value) {
   if (!value) return undefined;
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
+  let decoded = value;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const next = decodeURIComponent(decoded);
+      if (next === decoded) break;
+      decoded = next;
+    } catch {
+      break;
+    }
   }
+  return decoded;
 }
 
 export function parseFigmaUrl(input) {

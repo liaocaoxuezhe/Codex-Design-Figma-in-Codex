@@ -42,6 +42,32 @@ test("resolveCurrentFigmaTarget prefers explicit URL and explicit node ID", () =
   assert.equal(result.target.source, "explicit-input");
 });
 
+test("an explicit node link overrides a fresh companion selection", () => {
+  const result = resolveCurrentFigmaTarget({
+    explicitUrl: "https://www.figma.com/design/fileKey/Test?node-id=41-2",
+    bridgeState: {
+      available: true,
+      fresh: true,
+      state: { file: { key: "fileKey" }, selection: [{ id: "273:840", name: "旧选区", type: "SECTION" }] },
+    },
+  });
+
+  assert.equal(result.target.nodeId, "41:2");
+  assert.equal(result.target.source, "explicit-url");
+  assert.equal(result.target.confidence, "high");
+});
+
+test("resolveCurrentFigmaTarget needs no companion warning for a browser node link", () => {
+  const result = resolveCurrentFigmaTarget({
+    explicitUrl: "https://www.figma.com/design/fileKey/%E7%94%9F%E5%9B%BE?node-id=1-2",
+    bridgeState: { available: true, fresh: false, state: { selection: [{ id: "3:4" }] } },
+  });
+
+  assert.equal(result.canWrite, true);
+  assert.equal(result.target.nodeId, "1:2");
+  assert.deepEqual(result.warnings, []);
+});
+
 test("resolveCurrentFigmaTarget prefers fresh single live selection over URL node", () => {
   const result = resolveCurrentFigmaTarget({
     browserContext: {
@@ -58,6 +84,7 @@ test("resolveCurrentFigmaTarget prefers fresh single live selection over URL nod
       ageMs: 1000,
       state: {
         updatedAt: new Date().toISOString(),
+        file: { key: "fileKey" },
         selection: [{ id: "3:4", name: "订单卡片", type: "FRAME", visible: true, locked: false }],
       },
     },
@@ -79,6 +106,7 @@ test("resolveCurrentFigmaTarget blocks multi-selection writes unless allowed", (
       fresh: true,
       state: {
         updatedAt: new Date().toISOString(),
+        file: { key: "fileKey" },
         selection: [
           { id: "3:4", name: "A", type: "FRAME" },
           { id: "5:6", name: "B", type: "FRAME" },
@@ -89,4 +117,36 @@ test("resolveCurrentFigmaTarget blocks multi-selection writes unless allowed", (
 
   assert.equal(result.canWrite, false);
   assert.match(result.warnings.join("\n"), /multiple/i);
+});
+
+test("resolveCurrentFigmaTarget never pairs a browser file with another file's selection", () => {
+  const result = resolveCurrentFigmaTarget({
+    browserContext: { ok: true, fileKey: "browserFile", nodeId: "1:2", kind: "design", url: "https://www.figma.com/design/browserFile/Test?node-id=1-2" },
+    bridgeState: {
+      available: true,
+      fresh: true,
+      state: {
+        file: { key: "otherFile" },
+        selection: [{ id: "3:4", name: "Other", type: "FRAME" }],
+      },
+    },
+  });
+  assert.equal(result.target.fileKey, "browserFile");
+  assert.equal(result.target.nodeId, "1:2");
+  assert.equal(result.target.source, "browser-url");
+  assert.match(result.warnings.join("\n"), /different Figma file/);
+});
+
+test("resolveCurrentFigmaTarget does not trust a selection without a file key", () => {
+  const result = resolveCurrentFigmaTarget({
+    browserContext: { ok: true, fileKey: "browserFile", kind: "design" },
+    bridgeState: {
+      available: true,
+      fresh: true,
+      state: { file: { name: "同名文件" }, selection: [{ id: "3:4", name: "Other", type: "FRAME" }] },
+    },
+  });
+  assert.equal(result.canWrite, false);
+  assert.equal(result.target.nodeId, null);
+  assert.match(result.warnings.join("\n"), /did not provide a file key/);
 });

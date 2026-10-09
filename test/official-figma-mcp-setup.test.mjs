@@ -17,9 +17,7 @@ test("official Figma MCP setup guide explains install and auth for read workflow
     OFFICIAL_FIGMA_MCP_TOOLS.getDesignContext,
   ]);
   assert.deepEqual(guide.optionalTools, [OFFICIAL_FIGMA_MCP_TOOLS.getScreenshot]);
-  assert.equal(guide.codexToolNames.get_metadata, "mcp__plugin_figma_figma__get_metadata");
-  assert.equal(guide.codexToolNames.get_design_context, "mcp__plugin_figma_figma__get_design_context");
-  assert.equal(guide.codexToolNames.get_screenshot, "mcp__plugin_figma_figma__get_screenshot");
+  assert.equal(guide.codexToolNames, undefined);
   assert.match(guide.userMessage, /添加官方 Figma MCP/);
   assert.match(guide.userMessage, /https:\/\/mcp\.figma\.com\/mcp/);
   assert.match(guide.userMessage, /完成 Figma 授权/);

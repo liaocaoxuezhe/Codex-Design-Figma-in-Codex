@@ -51,9 +51,10 @@ const tools = [
   {
     name: "get_figma_onboarding_status",
     title: "Get Figma Onboarding Status",
-    description: "Check whether Codex should open Figma, start the bridge, ask for the companion plugin, or continue with the resolved target.",
+    description: "First call for visible Figma work. Returns a required Codex internal Browser handoff URL; open or focus it before design reads or writes, then use the resolved target.",
     inputSchema: z.object({
       explicitUrl: z.string().optional(),
+      currentBrowserUrl: z.string().optional().describe("URL already open in the chosen Codex in-app Browser tab; used to avoid reopening the requested Figma target."),
       explicitNodeId: z.string().optional(),
       allowMultiSelection: z.boolean().optional(),
     }).strict(),
@@ -90,17 +91,30 @@ function text(payload) {
   return { content: [{ type: "text", text: JSON.stringify(payload, null, 2) }] };
 }
 
-async function getBrowserContext(args = {}) {
-  const state = await stateStore.readState();
+function textWithStructuredContent(payload) {
+  return { ...text(payload), structuredContent: payload };
+}
+
+async function getBrowserContext(args = {}, bridgeState) {
+  const state = bridgeState ?? await stateStore.readState();
   const url = args.url ?? process.env.FIGMA_CURRENT_URL ?? state.state?.file?.url;
-  if (!url) {
+  if (url) return parseFigmaUrl(url);
+  const file = state.state?.file;
+  if (file?.key) {
     return {
-      ok: false,
-      error: "No Figma URL is available. Pass url, set FIGMA_CURRENT_URL, or run the companion plugin after opening a Figma file.",
-      stateAvailable: state.available,
+      ok: true,
+      fileKey: file.key,
+      fileName: file.name,
+      kind: file.kind ?? "design",
+      nodeId: null,
+      url: null,
     };
   }
-  return parseFigmaUrl(url);
+  return {
+    ok: false,
+    error: "No Figma URL or file key is available. Pass the current Codex browser URL or run the companion plugin in a local/private Figma file.",
+    stateAvailable: state.available,
+  };
 }
 
 async function getBridgeHealth() {
@@ -118,8 +132,7 @@ async function callTool(name, args = {}) {
   if (name === "get_current_figma_browser_context") return text(await getBrowserContext(args));
   if (name === "get_current_figma_selection") return text(await stateStore.readState());
   if (name === "get_figma_bridge_status") {
-    const state = await stateStore.readState();
-    const bridgeHealth = await getBridgeHealth();
+    const [state, bridgeHealth] = await Promise.all([stateStore.readState(), getBridgeHealth()]);
     return text({
       ok: true,
       httpServer: "Expected at http://127.0.0.1:38447. Start with scripts/start-bridge.sh.",
@@ -133,47 +146,43 @@ async function callTool(name, args = {}) {
     });
   }
   if (name === "get_figma_onboarding_status") {
-    return text(getFigmaOnboardingStatus({
+    const [bridgeState, bridgeHealth] = await Promise.all([stateStore.readState(), getBridgeHealth()]);
+    return textWithStructuredContent(getFigmaOnboardingStatus({
       explicitUrl: args.explicitUrl,
+      currentBrowserUrl: args.currentBrowserUrl,
       explicitNodeId: args.explicitNodeId,
       allowMultiSelection: Boolean(args.allowMultiSelection),
-      browserContext: await getBrowserContext({ url: args.explicitUrl }),
-      bridgeState: await stateStore.readState(),
-      bridgeHealth: await getBridgeHealth(),
+      browserContext: await getBrowserContext({ url: args.explicitUrl }, bridgeState),
+      bridgeState,
+      bridgeHealth,
     }));
   }
-  if (name === "resolve_current_figma_target") {
-    return text(resolveCurrentFigmaTarget({
-      explicitUrl: args.explicitUrl,
-      explicitNodeId: args.explicitNodeId,
-      allowMultiSelection: Boolean(args.allowMultiSelection),
-      browserContext: await getBrowserContext({ url: args.explicitUrl }),
-      bridgeState: await stateStore.readState(),
-    }));
-  }
-  if (name === "prepare_figma_mcp_workflow") {
+  if (name === "resolve_current_figma_target" || name === "prepare_figma_mcp_workflow") {
+    const bridgeState = await stateStore.readState();
     const resolved = resolveCurrentFigmaTarget({
       explicitUrl: args.explicitUrl,
       explicitNodeId: args.explicitNodeId,
       allowMultiSelection: Boolean(args.allowMultiSelection),
-      browserContext: await getBrowserContext({ url: args.explicitUrl }),
-      bridgeState: await stateStore.readState(),
+      browserContext: await getBrowserContext({ url: args.explicitUrl }, bridgeState),
+      bridgeState,
     });
+    if (name === "resolve_current_figma_target") return text(resolved);
     const intent = args.intent ?? "read";
     const steps = intent === "write" || intent === "create"
-      ? ["get_metadata", "get_design_context", "use_figma", "record_figma_operation"]
-      : ["get_metadata", "get_design_context"];
-    const optionalSteps = ["get_screenshot"];
+      ? ["get_design_context", "use_figma", "record_figma_operation"]
+      : ["get_design_context"];
     return text({
       intent,
       target: resolved.target,
       canWrite: resolved.canWrite,
       officialFigmaMcp: createOfficialFigmaMcpSetupGuide({ intent }),
       officialFigmaMcpCalls: steps.map((toolName) => ({ toolName, args: resolved.target ? { fileKey: resolved.target.fileKey, nodeId: resolved.target.nodeId } : {} })),
-      optionalOfficialFigmaMcpCalls: optionalSteps.map((toolName) => ({
+      optionalOfficialFigmaMcpCalls: ["get_metadata", "get_screenshot"].map((toolName) => ({
         toolName,
         args: resolved.target ? { fileKey: resolved.target.fileKey, nodeId: resolved.target.nodeId } : {},
-        useWhen: "Only after structured checks cannot answer a specific visual question, or when the user explicitly asks for a screenshot.",
+        useWhen: toolName === "get_metadata"
+          ? "Only when the node ID is unknown or surrounding page/file structure is needed."
+          : "Only when structured checks cannot answer a specific visual question, or the user explicitly asks for a screenshot.",
       })),
       warnings: resolved.warnings,
     });
@@ -187,7 +196,7 @@ async function callTool(name, args = {}) {
   throw new Error(`Unknown tool: ${name}`);
 }
 
-const server = new McpServer({ name: "figma-in-codex", version: "0.1.0" });
+const server = new McpServer({ name: "figma-in-codex", version: "0.1.6" });
 
 for (const tool of tools) {
   server.registerTool(

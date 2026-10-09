@@ -5,29 +5,11 @@ description: Use when the user asks to modify, restyle, rewrite, or update the c
 
 # Figma Edit Current Selection
 
-Always resolve the current target through `figma_in_codex` first. Use official Figma MCP for all canvas writes.
-
-1. Call `resolve_current_figma_target`.
-2. Stop before writing if `canWrite` is false, selection is stale, there is no `nodeId`, or multiple nodes are selected without explicit permission.
-3. Call `prepare_figma_mcp_workflow` with `intent: "write"` and keep its `officialFigmaMcp` setup guide available.
-4. If official Figma MCP tools are unavailable, missing, or fail because Figma is not authenticated, stop before writing and tell the user:
-   - Add the official Figma MCP remote server in Codex MCP settings.
-   - Use `https://mcp.figma.com/mcp` as the server URL.
-   - Complete the Figma authorization prompt with an account that can access the target file.
-   - Retry the request after Codex shows the Figma MCP is connected.
-5. Inspect the resolved target with official Figma MCP structured tools before writing:
-   - `mcp__plugin_figma_figma__get_metadata` / `get_metadata` for page/file node tree, structure, and node list.
-   - `mcp__plugin_figma_figma__get_design_context` / `get_design_context` for the selected `nodeId` details and design context.
-   - For verification, prefer `use_figma` code that reads positions, sizes, text bounds, constraints, and overlap relationships.
-   - `mcp__plugin_figma_figma__get_screenshot` / `get_screenshot` only when the user explicitly asks for a screenshot or structured checks cannot answer a specific visual question. Screenshots are token-expensive.
-6. Write a short modification plan that names the target and preserves auto layout, component instances, variables, constraints, and existing content not mentioned by the user.
-7. Call official Figma MCP `use_figma` with a prompt containing:
-   - target `fileKey`
-   - target `nodeId`
-   - node name and type when available
-   - exact requested change
-   - preservation constraints
-   - acceptance criteria based on structured context and geometry checks
-8. After writing, use structured context or `use_figma` geometry checks again. Call `get_screenshot` only when structured checks cannot answer a specific visual question or the user explicitly requested it.
-9. Call `record_figma_operation` with the request, target, and outcome.
-10. Summarize what changed and name which verification method was used.
+1. Before official Figma MCP reads or writes, follow `figma-onboarding`: call its local status tool and complete the required visible `browserHandoff` in the Codex in-app Browser. A supplied Figma link takes precedence over another open tab. Then call `get_figma_onboarding_status` with the actual tab URL as both `explicitUrl` and `currentBrowserUrl`. Keep the browser surface open while editing, rather than opening a link only at the end.
+2. Stop before writing if `canWrite` is false, there is no node ID, or multiple nodes are selected without explicit permission. An explicit node link remains usable even when an unrelated companion selection is stale.
+3. Use official Figma MCP for canvas reads and writes. If it is unavailable or unauthenticated, explain the missing connection to `https://mcp.figma.com/mcp`.
+4. Inspect the target with `get_design_context`. Call `get_metadata` only if the node ID is unknown or surrounding page/file structure is needed. Use `get_screenshot` when structured checks cannot answer a specific visual question or the user asks for one.
+5. Make a short modification plan that names the target and preserves unrelated content, auto layout, components, variables, and constraints.
+6. Send one coherent change request to official Figma MCP `use_figma`, including file key, node ID, exact changes, preservation constraints, and acceptance criteria. Avoid a separate call for every small property change when they form one edit.
+7. Verify the changed nodes with targeted structured context or geometry checks. Check the actual Figma render when the requested change is visual. Before retrying an uncertain write, inspect the target to avoid duplicate changes.
+8. Call `record_figma_operation` and summarize the result and verification.
